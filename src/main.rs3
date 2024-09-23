@@ -1,0 +1,16 @@
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    for i in 0..100000 {
+        tokio::spawn(async move{
+            tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+            println!("任务:{}", i);
+        });
+    }
+
+    // 等待两个任务完成
+    // let _ = tokio::join!(task1, task2);    // 等待 Ctrl+C 信号
+    tokio::signal::ctrl_c()
+        .await
+        .expect("Failed to install CTRL+C signal handler");
+    println!("Exiting...");
+}

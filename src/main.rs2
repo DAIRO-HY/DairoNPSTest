@@ -1,0 +1,52 @@
+use std::net::TcpStream;
+use std::io::{self, Write, Read};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    acc().await
+}
+
+async fn acc() {
+    for _count in 0..10 { // 0到4（不包含5）
+
+        // 启动一个异步任务
+        tokio::spawn(async {
+            println!("当前计数: {}", 12);
+            if let Err(e) = accept(12) {
+                eprintln!("Error: {}", e);
+            }
+        });
+    }
+    // sleep(Duration::from_secs(15));
+    // 等待 Ctrl+C 信号
+    tokio::signal::ctrl_c()
+        .await
+        .expect("Failed to install CTRL+C signal handler");
+    println!("Exiting...");
+}
+
+fn accept(index: i16) -> io::Result<()> {
+
+    // 连接到指定的地址和端口
+    let mut stream = TcpStream::connect("192.168.10.104:1680")?;
+    // println!("{}: Connected to the server!", index);
+    for _ in 0 .. 1 {
+        let msg = index.to_string() + ": Hello from client!";
+
+        // 要发送的消息
+        let msg_byte_array = msg.as_bytes();
+
+        // 发送消息到服务器
+        stream.write_all(msg_byte_array)?;
+
+        // 创建一个缓冲区来读取响应
+        let mut buffer = [0; 512];
+        let _bytes_read = stream.read(&mut buffer)?;
+
+        // 打印服务器的响应
+        // println!("{}: Received: {}", index, String::from_utf8_lossy(&buffer[..bytes_read]));
+        // tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.1)).await;
+        //sleep(Duration::from_secs(1));
+    }
+    Ok(())
+}
